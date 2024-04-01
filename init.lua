@@ -184,6 +184,14 @@ vim.keymap.set('v', 'g.', ':norm .<cr>', { desc = 'Repeat Dot Operator' })
 -- Set keymap to delete empty lines in visual mode
 vim.keymap.set('v', 'gd', ':g/^$/d<cr>', { desc = '[D]elete Empty Lines' })
 
+-- Set keymaps for tabpages
+vim.keymap.set('n', '<leader>n', ':tabnew<cr>', { desc = '[N]ew Tabpage' })
+vim.keymap.set('n', '<leader>x', ':tabclose<cr>', { desc = 'Close Tabpage' })
+for i = 1, 5 do
+  local keymap = '<leader>' .. i
+  local command = ':tabn' .. i .. '<cr>'
+  vim.keymap.set('n', keymap, command)
+end
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
