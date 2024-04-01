@@ -178,8 +178,11 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- Set split terminal keymap
 vim.keymap.set('n', '<leader>t', ':vsplit terminal<cr>', { desc = 'Split [T]erminal' })
 
--- Set dot operator to perform operation per line in visual line mode
+-- Set keymap to perform dot operator per line in visual mode
 vim.keymap.set('v', 'g.', ':norm .<cr>', { desc = 'Repeat Dot Operator' })
+
+-- Set keymap to delete empty lines in visual mode
+vim.keymap.set('v', 'gd', ':g/^$/d<cr>', { desc = '[D]elete Empty Lines' })
 
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
