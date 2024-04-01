@@ -178,6 +178,9 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- Set split terminal keymap
 vim.keymap.set('n', '<leader>t', ':vsplit terminal<cr>', { desc = 'Split [T]erminal' })
 
+-- Set dot operator to perform operation per line in visual line mode
+vim.keymap.set('v', 'g.', ':norm .<cr>', { desc = 'Repeat Dot Operator' })
+
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
