@@ -176,7 +176,7 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 -- Set split terminal keymap
-vim.keymap.set('n', '<leader>t', ':vsplit terminal<cr>', { desc = 'Split [T]erminal' })
+vim.keymap.set('n', '<leader>t', ':vsplit|term<cr>', { desc = 'Split [T]erminal' })
 
 -- Set keymap to perform dot operator per line in visual mode
 vim.keymap.set('v', 'g.', ':norm .<cr>', { desc = 'Repeat Dot Operator' })
