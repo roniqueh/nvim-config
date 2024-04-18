@@ -784,15 +784,14 @@ require('lazy').setup({
 
       -- File browser
       local files = require 'mini.files'
-      files.setup({
+      files.setup {
         mappings = {
-        go_in = '',
-        go_in_plus = 'l',
-        go_out = '',
-        go_out_plus = 'h',
+          go_in = '',
+          go_in_plus = 'l',
+          go_out = '',
+          go_out_plus = 'h',
+        },
       }
-    }
-      )
       vim.keymap.set('n', '<leader>f', files.open, { desc = '[F]ile explorer' })
 
       local map_split = function(buf_id, lhs, direction)
@@ -805,6 +804,7 @@ require('lazy').setup({
           end)
 
           MiniFiles.set_target_window(new_target_window)
+          MiniFiles.go_in()
         end
 
         -- Adding `desc` will result into `show_help` entries
