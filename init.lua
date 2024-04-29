@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
@@ -163,6 +163,10 @@ vim.opt.scrolloff = 10
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = false
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+
+-- Keep cursor vertically centered for half-page jumps
+vim.keymap.set('n', '<C-u>', '<C-u>^zz', { desc = 'Half page up' })
+vim.keymap.set('n', '<C-d>', '<C-d>^zz', { desc = 'Half page down' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
@@ -822,6 +826,10 @@ require('lazy').setup({
       })
       -- Autopairs
       require('mini.pairs').setup()
+
+      -- Sessions
+      require('mini.starter').setup()
+      require('mini.sessions').setup()
 
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
