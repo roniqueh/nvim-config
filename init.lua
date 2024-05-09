@@ -161,7 +161,7 @@ vim.opt.scrolloff = 10
 --  See `:help vim.keymap.set()`
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
-vim.opt.hlsearch = false
+vim.opt.hlsearch = true
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Keep cursor vertically centered for vertical movement
@@ -896,9 +896,15 @@ require('lazy').setup({
       require('mini.pairs').setup()
 
       -- Sessions
-      require('mini.starter').setup()
       require('mini.sessions').setup()
 
+      local starter = require 'mini.starter'
+      starter.setup {
+        content_hooks = {
+          starter.gen_hook.adding_bullet '  ',
+          starter.gen_hook.aligning('center', 'center'),
+        },
+      }
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
