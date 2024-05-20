@@ -102,7 +102,7 @@ vim.g.have_nerd_font = true
 vim.opt.number = true
 -- You can also add relative line numbers, for help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -157,11 +157,15 @@ vim.opt.cursorline = true
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
+-- Set tab wifth, indentation to 2 spaces
+vim.opt.tabstop = 4
+vim.opt.shiftwidth = 4
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
-vim.opt.hlsearch = true
+vim.opt.hlsearch = false
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Keep cursor vertically centered for vertical movement
@@ -757,7 +761,7 @@ require('lazy').setup({
     'rose-pine/neovim',
     config = function()
       require('rose-pine').setup {
-        dim_inactive_windows = true,
+        dim_inactive_windows = false,
         extend_background_behind_borders = true,
 
         enable = {
@@ -771,54 +775,6 @@ require('lazy').setup({
           italic = true,
           transparency = false,
         },
-
-        groups = {
-          border = 'muted',
-          link = 'iris',
-          panel = 'surface',
-
-          error = 'love',
-          hint = 'iris',
-          info = 'foam',
-          note = 'pine',
-          todo = 'rose',
-          warn = 'gold',
-
-          git_add = 'foam',
-          git_change = 'rose',
-          git_delete = 'love',
-          git_dirty = 'rose',
-          git_ignore = 'muted',
-          git_merge = 'iris',
-          git_rename = 'pine',
-          git_stage = 'iris',
-          git_text = 'rose',
-          git_untracked = 'subtle',
-
-          h1 = 'iris',
-          h2 = 'foam',
-          h3 = 'rose',
-          h4 = 'gold',
-          h5 = 'pine',
-          h6 = 'foam',
-        },
-
-        highlight_groups = {
-          Comment = { fg = 'foam' },
-          VertSplit = { fg = 'muted', bg = 'muted' },
-        },
-
-        before_highlight = function(group, highlight, palette)
-          -- Disable all undercurls
-          -- if highlight.undercurl then
-          --   highlight.undercurl = false
-          -- end
-          --
-          -- Change palette colour
-          if highlight.fg == palette.pine then
-            highlight.fg = palette.foam
-          end
-        end,
       }
     end,
     priority = 1000, -- make sure to load this before all the other start plugins
@@ -929,7 +885,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc', 'svelte' },
+      ensure_installed = { 'bash', 'c', 'html', 'lua', 'markdown', 'vim', 'vimdoc', 'svelte', 'go' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
