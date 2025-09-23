@@ -1,3 +1,28 @@
+-- Prioritize Mason executables -> make sure LSPs get loaded in Python venvsinit
+local mason_bin = vim.fn.stdpath 'data' .. '/mason/bin'
+local path_parts = vim.split(vim.env.PATH, ';', { plain = true })
+
+-- Remove any existing instance of mason_bin
+for i = #path_parts, 1, -1 do
+  if path_parts[i] == mason_bin then
+    table.remove(path_parts, i)
+  end
+end
+
+-- Prepend mason_bin
+table.insert(path_parts, 1, mason_bin)
+
+-- Rebuild PATH
+vim.env.PATH = table.concat(path_parts, ';')
+
+-- Set Powershell as default shell
+vim.o.shellcmdflag =
+  '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;'
+vim.o.shellredir = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
+vim.o.shellpipe = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
+vim.o.shellquote = ''
+vim.o.shellxquote = ''
+
 --[[
 
 =====================================================================
@@ -286,6 +311,230 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+
+    config = function()
+      require('gitsigns').setup {
+        on_attach = function(bufnr)
+          local gitsigns = require 'gitsigns'
+
+          local function map(mode, l, r, opts)
+            opts = opts or {}
+            opts.buffer = bufnr
+            vim.keymap.set(mode, l, r, opts)
+          end
+
+          -- Navigation
+          map('n', ']h', function()
+            if vim.wo.diff then
+              vim.cmd.normal { ']h', bang = true }
+            else
+              gitsigns.nav_hunk 'next'
+            end
+          end, { desc = 'Gitsign: next [h]unk' })
+
+          map('n', '[h', function()
+            if vim.wo.diff then
+              vim.cmd.normal { '[h', bang = true }
+            else
+              gitsigns.nav_hunk 'prev'
+            end
+          end, { desc = 'Gitsign: prev [h]unk' })
+
+          -- Actions
+          map('n', '<leader>gs', gitsigns.stage_hunk, { desc = '[S]tage hunk' })
+          map('n', '<leader>gr', gitsigns.reset_hunk, { desc = '[R]eset hunk' })
+
+          map('v', '<leader>gs', function()
+            gitsigns.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+          end, { desc = '[S]tage hunk' })
+
+          map('v', '<leader>gr', function()
+            gitsigns.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+          end, { desc = '[R]eset hunk' })
+
+          map('n', '<leader>gS', gitsigns.stage_buffer, { desc = '[S]tage buffer' })
+          map('n', '<leader>gR', gitsigns.reset_buffer, { desc = '[R]eset buffer' })
+          map('n', '<leader>gp', gitsigns.preview_hunk, { desc = '[P]review hunk' })
+          map('n', '<leader>gi', gitsigns.preview_hunk_inline, { desc = 'Preview hunk [I]nline' })
+
+          map('n', '<leader>gb', function()
+            gitsigns.blame_line { full = true }
+          end, { desc = '[B]lame line' })
+
+          map('n', '<leader>gd', gitsigns.diffthis, { desc = '[D]iff This' })
+
+          map('n', '<leader>gD', function()
+            gitsigns.diffthis '~'
+          end, { desc = '[D]iff This' })
+
+          map('n', '<leader>gQ', function()
+            gitsigns.setqflist 'all'
+          end, { desc = 'Set [Q]uickfix List All' })
+          map('n', '<leader>gq', gitsigns.setqflist, { desc = 'Set [Q]uickfix list' })
+
+          -- Toggles
+          map('n', '<leader>gtb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle Line [B]lame' })
+          map('n', '<leader>gtw', gitsigns.toggle_word_diff, { desc = '[T]oggle [W]ord Diff' })
+
+          -- Text object
+          map({ 'o', 'x' }, 'ih', gitsigns.select_hunk, { desc = '[I]nside [H]unk' })
+        end,
+      }
+    end,
+  },
+
+  {
+    'benomahony/uv.nvim',
+    -- Optional filetype to lazy load when you open a python file
+    -- ft = { python }
+    -- Optional dependency, but recommended:
+    -- dependencies = {
+    --   "folke/snacks.nvim"
+    -- or
+    --   "nvim-telescope/telescope.nvim"
+    -- },
+    opts = {
+      picker_integration = true,
+      keymaps = {
+        prefix = '<leader>u',
+      },
+    },
+  },
+
+  {
+    'mfussenegger/nvim-dap',
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      'rcarriga/nvim-dap-ui',
+      -- 'mfussenegger/nvim-dap-python',
+      'theHamsta/nvim-dap-virtual-text',
+    },
+
+    config = function()
+      local dap = require 'dap'
+      local dapui = require 'dapui'
+      -- local dap_python = require 'dap-python'
+
+      require('dapui').setup {}
+      require('nvim-dap-virtual-text').setup {
+        commented = true, -- Show virtual text alongside comment
+      }
+      -- dap_python.setup 'uv'
+      dap.adapters.python = function(cb, config)
+        if config.request == 'attach' then
+          ---@diagnostic disable-next-line: undefined-field
+          local port = (config.connect or config).port
+          ---@diagnostic disable-next-line: undefined-field
+          local host = (config.connect or config).host or '127.0.0.1'
+          cb {
+            type = 'server',
+            port = assert(port, '`connect.port` is required for a python `attach` configuration'),
+            host = host,
+            options = {
+              source_filetype = 'python',
+            },
+          }
+        else
+          cb {
+            type = 'executable',
+            command = vim.fn.stdpath 'data' .. '\\mason\\packages\\debugpy\\venv\\scripts\\python',
+            args = { '-m', 'debugpy.adapter' },
+            options = {
+              source_filetype = 'python',
+            },
+          }
+        end
+      end
+
+      dap.configurations.python = {
+        {
+          -- The first three options are required by nvim-dap
+          type = 'python', -- the type here established the link to the adapter definition: `dap.adapters.python`
+          request = 'launch',
+          name = 'Launch file',
+
+          -- Options below are for debugpy, see https://github.com/microsoft/debugpy/wiki/Debug-configuration-settings for supported options
+
+          program = '${file}', -- This configuration will launch the current file if used.
+          pythonPath = function()
+            -- debugpy supports launching an application with a different interpreter then the one used to launch debugpy itself.
+            -- The code below looks for a `venv` or `.venv` folder in the current directly and uses the python within.
+            -- You could adapt this - to for example use the `VIRTUAL_ENV` environment variable.
+            local cwd = vim.fn.getcwd()
+            if vim.fn.executable(cwd .. '/venv/scripts/python') == 1 then
+              return cwd .. '\\venv\\scripts\\python'
+            elseif vim.fn.executable(cwd .. '/.venv/scripts/python') == 1 then
+              return cwd .. '\\.venv\\scripts\\python'
+            else
+              return '/usr/bin/python'
+            end
+          end,
+        },
+      }
+
+      vim.fn.sign_define('DapBreakpoint', {
+        text = '',
+        texthl = 'DiagnosticSignError',
+        linehl = '',
+        numhl = '',
+      })
+
+      vim.fn.sign_define('DapBreakpointRejected', {
+        text = '', -- or "❌"
+        texthl = 'DiagnosticSignError',
+        linehl = '',
+        numhl = '',
+      })
+
+      vim.fn.sign_define('DapStopped', {
+        text = '', -- or "→"
+        texthl = 'DiagnosticSignWarn',
+        linehl = 'Visual',
+        numhl = 'DiagnosticSignWarn',
+      })
+
+      -- Automatically open/close DAP UI
+      dap.listeners.after.event_initialized['dapui_config'] = function()
+        dapui.open()
+      end
+
+      local opts = { noremap = true, silent = true }
+
+      -- Toggle breakpoint
+      vim.keymap.set('n', '<leader>db', function()
+        dap.toggle_breakpoint()
+      end, vim.tbl_extend('force', opts, { desc = '[D]ebugging: Toggle [B]reakpoint' }))
+
+      -- Continue / Start
+      vim.keymap.set('n', '<leader>dc', function()
+        dap.continue()
+      end, vim.tbl_deep_extend('force', opts, { desc = '[D]ebugging: [C]ontinue' }))
+
+      -- Step Over
+      vim.keymap.set('n', '<leader>do', function()
+        dap.step_over()
+      end, vim.tbl_deep_extend('force', opts, { desc = '[D]ebugging: Step [O]ver' }))
+
+      -- Step Into
+      vim.keymap.set('n', '<leader>di', function()
+        dap.step_into()
+      end, vim.tbl_deep_extend('force', opts, { desc = '[D]ebugging: Step [I]nto' }))
+
+      -- Step Out
+      vim.keymap.set('n', '<leader>dO', function()
+        dap.step_out()
+      end, vim.tbl_deep_extend('force', opts, { desc = '[D]ebugging: Step [O]ut' }))
+
+      -- Keymap to terminate debugging
+      vim.keymap.set('n', '<leader>dq', function()
+        require('dap').terminate()
+      end, vim.tbl_deep_extend('force', opts, { desc = '[D]ebugging: [Q]uit' }))
+
+      -- Toggle DAP UI
+      vim.keymap.set('n', '<leader>du', function()
+        dapui.toggle()
+      end, vim.tbl_deep_extend('force', opts, { desc = '[D]ebugging: Show [U]I' }))
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run lua code when they are loaded.
@@ -306,16 +555,26 @@ require('lazy').setup({
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-    config = function() -- This is the function that runs, AFTER loading
-      require('which-key').setup()
+    opts = {
+      sort = { 'alphanum' },
+    },
+    config = function(_, opts) -- This is the function that runs, AFTER loading
+      require('which-key').setup(opts)
 
       -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+      require('which-key').add {
+        { '<leader>c', group = '[C]ode' },
+        { '<leader>c_', hidden = true },
+        { '<leader>d', group = '[D]ocument / [D]ebugging' },
+        { '<leader>d_', hidden = true },
+        { '<leader>g', group = '[G]itsigns' },
+        { '<leader>g_', hidden = true },
+        { '<leader>r', group = '[R]ename' },
+        { '<leader>r_', hidden = true },
+        { '<leader>s', group = '[S]earch' },
+        { '<leader>s_', hidden = true },
+        { '<leader>w', group = '[W]orkspace' },
+        { '<leader>w_', hidden = true },
       }
     end,
   },
@@ -569,10 +828,16 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
+        clangd = {},
+        cssls = {},
+        emmet_language_server = {},
+        gopls = {},
+        html = {},
+        jsonls = {},
+        pyright = {},
+        ruff = {},
+        -- sqlls = {},
+
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -611,21 +876,16 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format lua code
+        'sqruff', -- Used to format SQL
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
-      require('mason-lspconfig').setup {
-        handlers = {
-          function(server_name)
-            local server = servers[server_name] or {}
-            -- This handles overriding only values explicitly passed
-            -- by the server configuration above. Useful when disabling
-            -- certain features of an LSP (for example, turning off formatting for tsserver)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
-          end,
-        },
-      }
+      vim.lsp.set_log_level 'debug'
+      for server_name, server_config in pairs(servers) do
+        server_config.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server_config.capabilities or {})
+        vim.lsp.config(server_name, server_config)
+        vim.lsp.enable(server_name)
+      end
     end,
   },
 
@@ -635,10 +895,12 @@ require('lazy').setup({
       notify_on_error = false,
       format_on_save = {
         timeout_ms = 500,
-        lsp_fallback = true,
+        lsp_format = 'fallback',
+        -- disable_filetypes = { sql = true },
       },
       formatters_by_ft = {
         lua = { 'stylua' },
+        sql = { 'sqruff' },
         -- Conform can also run multiple formatters sequentially
         -- python = { "isort", "black" },
         --
@@ -674,6 +936,14 @@ require('lazy').setup({
             config = function()
               require('luasnip.loaders.from_vscode').lazy_load()
             end,
+          },
+          {
+            'MattiasMTS/cmp-dbee',
+            dependencies = {
+              { 'kndndrj/nvim-dbee' },
+            },
+            ft = 'sql', -- optional but good to have
+            opts = {}, -- needed
           },
         },
       },
@@ -748,6 +1018,7 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          { name = 'cmp-dbee' },
         },
       }
     end,
@@ -921,6 +1192,28 @@ require('lazy').setup({
     end,
   },
 
+  {
+    'kndndrj/nvim-dbee',
+    dependencies = {
+      'MunifTanjim/nui.nvim',
+    },
+    build = function()
+      -- Install tries to automatically detect the install method.
+      -- if it fails, try calling it with one of these parameters:
+      --    "curl", "wget", "bitsadmin", "go"
+      require('dbee').install 'go'
+    end,
+    config = function()
+      local dbee = require 'dbee'
+      dbee.setup {
+        editor = {
+          directory = vim.fn.getcwd(),
+        },
+      }
+      vim.keymap.set('n', '<leader>b', dbee.toggle, { desc = 'Toggle D[b]ee UI' })
+    end,
+  },
+  --
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- put them in the right spots if you want.

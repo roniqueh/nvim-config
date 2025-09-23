@@ -30,7 +30,7 @@ return {
       -- reasonable debug configurations
       automatic_setup = true,
 
-      -- You can provide additional configuration to the handlers,
+      -- You can provide additional configuration to the handler,
       -- see mason-nvim-dap README for more information
       handlers = {},
 
