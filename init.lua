@@ -182,7 +182,7 @@ vim.opt.cursorline = true
 -- Minimal number of screen lines to keep above and below the cursor.
 vim.opt.scrolloff = 10
 
--- Set tab wifth, indentation to 2 spaces
+-- Set tab wifth, indentation to 4 spaces
 vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 
@@ -215,6 +215,9 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 
 -- Set split terminal keymap
 vim.keymap.set('n', '<leader>t', ':vsplit|term<cr>', { desc = 'Split [T]erminal' })
+
+-- Send selected text to buffer on right
+vim.keymap.set('v', '<C-l>', 'y<C-w><C-l>p', { desc = 'Send text to buffer on right' })
 
 -- Set keymap to perform dot operator per line in visual mode
 vim.keymap.set('v', 'g.', ':norm .<cr>', { desc = 'Repeat Dot Operator' })
@@ -1097,13 +1100,13 @@ require('lazy').setup({
         local rhs = function()
           -- Make new window and set it as target
           local new_target_window
-          vim.api.nvim_win_call(MiniFiles.get_target_window(), function()
+          vim.api.nvim_win_call(files.get_explorer_state().target_window, function()
             vim.cmd(direction .. ' split')
             new_target_window = vim.api.nvim_get_current_win()
           end)
 
-          MiniFiles.set_target_window(new_target_window)
-          MiniFiles.go_in()
+          files.set_target_window(new_target_window)
+          files.go_in()
         end
 
         -- Adding `desc` will result into `show_help` entries
@@ -1213,6 +1216,38 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>b', dbee.toggle, { desc = 'Toggle D[b]ee UI' })
     end,
   },
+
+  {
+    'goerz/jupytext.nvim',
+    version = '0.2.0',
+    opts = {
+      format = 'py:percent',
+    }, -- see Options
+  },
+
+  {
+  "hat0uma/csvview.nvim",
+  ---@module "csvview"
+  ---@type CsvView.Options
+  opts = {
+    parser = { comments = { "#", "//" } },
+    keymaps = {
+      -- Text objects for selecting fields
+      textobject_field_inner = { "if", mode = { "o", "x" } },
+      textobject_field_outer = { "af", mode = { "o", "x" } },
+      -- Excel-like navigation:
+      -- Use <Tab> and <S-Tab> to move horizontally between fields.
+      -- Use <Enter> and <S-Enter> to move vertically between rows and place the cursor at the end of the field.
+      -- Note: In terminals, you may need to enable CSI-u mode to use <S-Tab> and <S-Enter>.
+      jump_next_field_end = { "<Tab>", mode = { "n", "v" } },
+      jump_prev_field_end = { "<S-Tab>", mode = { "n", "v" } },
+      jump_next_row = { "<Enter>", mode = { "n", "v" } },
+      jump_prev_row = { "<S-Enter>", mode = { "n", "v" } },
+    },
+  },
+  cmd = { "CsvViewEnable", "CsvViewDisable", "CsvViewToggle" },
+  },
+
   --
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
