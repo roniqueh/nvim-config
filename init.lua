@@ -16,12 +16,10 @@ table.insert(path_parts, 1, mason_bin)
 vim.env.PATH = table.concat(path_parts, ';')
 
 -- Set Powershell as default shell
-vim.o.shellcmdflag =
-  '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command [Console]::InputEncoding=[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;'
-vim.o.shellredir = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
-vim.o.shellpipe = '2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode'
-vim.o.shellquote = ''
-vim.o.shellxquote = ''
+vim.opt.shell = 'powershell.exe'
+vim.opt.shellcmdflag = '-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command'
+vim.opt.shellquote = ''
+vim.opt.shellxquote = ''
 
 --[[
 
@@ -1226,28 +1224,29 @@ require('lazy').setup({
   },
 
   {
-  "hat0uma/csvview.nvim",
-  ---@module "csvview"
-  ---@type CsvView.Options
-  opts = {
-    parser = { comments = { "#", "//" } },
-    keymaps = {
-      -- Text objects for selecting fields
-      textobject_field_inner = { "if", mode = { "o", "x" } },
-      textobject_field_outer = { "af", mode = { "o", "x" } },
-      -- Excel-like navigation:
-      -- Use <Tab> and <S-Tab> to move horizontally between fields.
-      -- Use <Enter> and <S-Enter> to move vertically between rows and place the cursor at the end of the field.
-      -- Note: In terminals, you may need to enable CSI-u mode to use <S-Tab> and <S-Enter>.
-      jump_next_field_end = { "<Tab>", mode = { "n", "v" } },
-      jump_prev_field_end = { "<S-Tab>", mode = { "n", "v" } },
-      jump_next_row = { "<Enter>", mode = { "n", "v" } },
-      jump_prev_row = { "<S-Enter>", mode = { "n", "v" } },
+    'hat0uma/csvview.nvim',
+    ---@module "csvview"
+    ---@type CsvView.Options
+    opts = {
+      parser = { comments = { '#', '//' } },
+      keymaps = {
+        -- Text objects for selecting fields
+        textobject_field_inner = { 'if', mode = { 'o', 'x' } },
+        textobject_field_outer = { 'af', mode = { 'o', 'x' } },
+        -- Excel-like navigation:
+        -- Use <Tab> and <S-Tab> to move horizontally between fields.
+        -- Use <Enter> and <S-Enter> to move vertically between rows and place the cursor at the end of the field.
+        -- Note: In terminals, you may need to enable CSI-u mode to use <S-Tab> and <S-Enter>.
+        jump_next_field_end = { '<Tab>', mode = { 'n', 'v' } },
+        jump_prev_field_end = { '<S-Tab>', mode = { 'n', 'v' } },
+        jump_next_row = { '<Enter>', mode = { 'n', 'v' } },
+        jump_prev_row = { '<S-Enter>', mode = { 'n', 'v' } },
+      },
     },
-  },
-  cmd = { "CsvViewEnable", "CsvViewDisable", "CsvViewToggle" },
+    cmd = { 'CsvViewEnable', 'CsvViewDisable', 'CsvViewToggle' },
   },
 
+  { 'danymat/neogen', opts = {} },
   --
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
