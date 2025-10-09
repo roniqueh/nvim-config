@@ -192,10 +192,12 @@ vim.opt.hlsearch = false
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Keep cursor vertically centered for vertical movement
-vim.keymap.set('n', 'j', 'jzz', { desc = 'Half page up' })
-vim.keymap.set('n', 'k', 'kzz', { desc = 'Half page up' })
+vim.keymap.set('n', 'j', 'jzz', { desc = 'Move down' })
+vim.keymap.set('n', 'k', 'kzz', { desc = 'Move up' })
 vim.keymap.set('n', '<C-d>', '<C-d>^zz', { desc = 'Half page down' })
 vim.keymap.set('n', '<C-u>', '<C-u>^zz', { desc = 'Half page up' })
+vim.keymap.set('n', '}', '}^zz', { desc = 'Paragraph down' })
+vim.keymap.set('n', '{', '{^zz', { desc = 'Paragraph up' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
@@ -214,8 +216,11 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 -- Set split terminal keymap
 vim.keymap.set('n', '<leader>t', ':vsplit|term<cr>', { desc = 'Split [T]erminal' })
 
--- Send selected text to buffer on right
-vim.keymap.set('v', '<C-l>', 'y<C-w><C-l>p', { desc = 'Send text to buffer on right' })
+-- Send selected text to panes on screen
+vim.keymap.set('v', '<C-h>', 'y<C-w><C-h>PGA<cr><esc><esc>', { desc = 'Send text to buffer on left' })
+vim.keymap.set('v', '<C-j>', 'y<C-w><C-j>PGA<cr><esc><esc>', { desc = 'Send text to buffer on bottom' })
+vim.keymap.set('v', '<C-k>', 'y<C-w><C-k>PGA<cr><esc><esc>', { desc = 'Send text to buffer on top' })
+vim.keymap.set('v', '<C-l>', 'y<C-w><C-l>PGA<cr><esc><esc>', { desc = 'Send text to buffer on right' })
 
 -- Set keymap to perform dot operator per line in visual mode
 vim.keymap.set('v', 'g.', ':norm .<cr>', { desc = 'Repeat Dot Operator' })
@@ -398,6 +403,7 @@ require('lazy').setup({
       picker_integration = true,
       keymaps = {
         prefix = '<leader>u',
+        commands = false,
       },
     },
   },
@@ -1033,7 +1039,7 @@ require('lazy').setup({
     'rose-pine/neovim',
     config = function()
       require('rose-pine').setup {
-        dim_inactive_windows = false,
+        dim_inactive_windows = true,
         extend_background_behind_borders = true,
 
         enable = {
@@ -1247,6 +1253,37 @@ require('lazy').setup({
   },
 
   { 'danymat/neogen', opts = {} },
+  {
+    'obsidian-nvim/obsidian.nvim',
+    version = '*', -- recommended, use latest release instead of latest commit
+    ft = 'markdown',
+
+    -- Replace the above line with this if you only want to load obsidian.nvim for markdown files in your vault:
+    -- event = {
+    --   -- If you want to use the home shortcut '~' here you need to call 'vim.fn.expand'.
+    --   -- E.g. "BufReadPre " .. vim.fn.expand "~" .. "/my-vault/*.md"
+    --   -- refer to `:h file-pattern` for more examples
+    --   "BufReadPre path/to/my-vault/*.md",
+    --   "BufNewFile path/to/my-vault/*.md",
+    -- },
+    ---@module 'obsidian'
+    ---@type obsidian.config
+    dependencies = { 'MeanderingProgrammer/render-markdown.nvim' },
+    opts = {
+      workspaces = {
+        {
+          name = 'personal',
+          path = '~/onedrive/documents/vaults/personal',
+        },
+        {
+          name = 'work',
+          path = '~/onedrive/documents/vaults/work',
+        },
+      },
+
+      -- see below for full list of options 👇
+    },
+  },
   --
   -- The following two comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
